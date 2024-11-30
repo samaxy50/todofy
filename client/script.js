@@ -153,7 +153,7 @@ const debounce = (func, delay) => {
 
 const renderMessagePopup = (message) => {
   const popup = document.createElement("div");
-  popup.className = "small-popup";
+  popup.className = "notification small-popup";
 
   popup.innerHTML = `
     <p class="text-gray-100">${message}</p>
@@ -172,18 +172,25 @@ const renderMessagePopup = (message) => {
 
   const removePopup = () => {
     popup.remove();
-    clearTimeout(timeout);
+    clearTimeout(popup.timeoutId);
   };
+
+  const existingPopup = document.querySelector(".small-popup");
+  if (existingPopup) {
+    existingPopup.removeEventListener("click", removePopup);
+    clearTimeout(existingPopup.timeoutId);
+    existingPopup.remove();
+  }
 
   popup
     .querySelector(".close")
     .addEventListener("click", removePopup, { once: true });
-  const timeout = setTimeout(removePopup, 4000);
+  popup.timeoutId = setTimeout(removePopup, 4000);
 };
 
 const renderUserConfirmation = (message, callback = () => {}) => {
   const popup = document.createElement("div");
-  popup.className = "small-popup";
+  popup.className = "confirmation small-popup";
 
   popup.innerHTML = `
     <p class="secondary-heading">${message}</p>
@@ -200,8 +207,8 @@ const renderUserConfirmation = (message, callback = () => {}) => {
   document.body.appendChild(popup);
 
   const removePopup = () => {
+    clearTimeout(popup.timeoutId);
     popup.remove();
-    clearTimeout(timeout);
   };
 
   const handleEvent = (e) => {
@@ -224,105 +231,16 @@ const renderUserConfirmation = (message, callback = () => {}) => {
     }
   };
 
+  const existingPopup = document.querySelector(".confirmation");
+  if (existingPopup) {
+    existingPopup.removeEventListener("click", handleEvent);
+    clearTimeout(existingPopup.timeoutId);
+    existingPopup.remove();
+  }
+
   popup.addEventListener("click", handleEvent);
-  const timeout = setTimeout(removePopup, 60000);
+  popup.timeoutId = setTimeout(removePopup, 60000);
 };
-
-// const renderTodos = (todos) => {
-//   const todosContainer = document.querySelector("#todos");
-//   todosContainer.innerHTML = "";
-//   const fragment = document.createDocumentFragment();
-
-//   todos.forEach((todo) => {
-//     const todoDiv = document.createElement("div");
-//     todoDiv.id = `todo-${todo._id}`;
-//     const parsedDueTime = getTimeLeft(todo.dueTime);
-//     todoDiv.className = `todo ${
-//       parsedDueTime.startsWith("Time's up")
-//         ? "border-orange"
-//         : "border-gray-500"
-//     }`;
-
-//     todoDiv.innerHTML = `
-//       <div class="flex flex-col items-start gap-1">
-//         <h3 class="secondary-heading${todo.status ? " line-through" : ""}">${
-//       todo.title
-//     }</h3>
-//       ${
-//         todo.description
-//           ? `<p${todo.status ? " class='line-through'" : ""}>${
-//               todo.description.length > 50
-//                 ? `${todo.description.slice(
-//                     0,
-//                     50
-//                   )}...<button class="read-more">Read More</button>`
-//                 : todo.description
-//             }</p>`
-//           : ""
-//       }
-//     </div>
-//     <div class="min-w-fit flex items-center gap-2">
-//     ${
-//       !todo.status
-//         ? `<p class="due-time${
-//             parsedDueTime.startsWith("Time's up") ? " text-orange" : ""
-//           }">
-//             ${parsedDueTime}
-//         </p>`
-//         : ""
-//     }
-//     <button class="status icon ${todo.status ? "checked" : "unchecked"}">
-//       ${
-//         todo.status
-//           ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>`
-//           : ""
-//       }
-//     </button>
-//     <button class="edit icon">
-//       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160L0 416c0 53 43 96 96 96l256 0c53 0 96-43 96-96l0-96c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7-14.3 32-32 32L96 448c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 64z"/></svg>
-//     </button>
-//     <button class="delete icon">
-//       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="size-4 fill-gray-900 dark:fill-gray-200"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
-//     </button>
-//   </div>
-//   `;
-
-//     fragment.appendChild(todoDiv);
-//   });
-
-//   todosContainer.appendChild(fragment);
-
-//   const handleTodoClick = async (e) => {
-//     const target = e.target.closest(".todo");
-//     if (!target) return;
-
-//     const todoId = target.id.split("-")[1];
-//     const todo = todos.find((todo) => todo._id === todoId);
-//     if (e.target.closest(".status")) {
-//       const targetBtn = e.target.closest(".status");
-//       targetBtn.disabled = true;
-//       if (todo.status) {
-//         await handleToggleTodoStatus(todoId, false);
-//         targetBtn.innerHTML = "";
-//       } else {
-//         await handleToggleTodoStatus(todoId, true);
-//         targetBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>`;
-//       }
-//       targetBtn.disabled = false;
-//     } else if (e.target.closest(".edit")) {
-//       handleAddEditTodo(todo);
-//     } else if (e.target.closest(".delete")) {
-//       renderUserConfirmation("Do you want to delete this todo?", () =>
-//         handleDeleteTodo(todoId)
-//       );
-//     }
-//   };
-
-//   todosContainer.removeEventListener("click", handleTodoClick);
-//   todosContainer.addEventListener("click", handleTodoClick);
-// };
-
-// Event Handlers
 
 const renderTodos = (todos) => {
   const todosContainer = document.querySelector("#todos");
@@ -638,6 +556,8 @@ const handleDeleteUser = () => {
 
   const removePopup = () => {
     form.removeEventListener("submit", handleSubmit);
+    popupContainer.removeEventListener("click", handlePopupClose);
+    clearTimeout(popupContainer.timeoutId);
     popupContainer.remove();
   };
 
@@ -671,10 +591,23 @@ const handleDeleteUser = () => {
     }
   };
 
+  const handlePopupClose = (e) => {
+    if (e.target.closest(".cancel") || !e.target.closest(".box")) removePopup();
+  };
+
+  const existingPopup = document.querySelector(".popup-container");
+  if (existingPopup) {
+    existingPopup
+      .querySelector("form")
+      .removeEventListener("submit", handleSubmit);
+    existingPopup.removeEventListener("click", handlePopupClose);
+    clearTimeout(existingPopup.timeoutId);
+    existingPopup.remove();
+  }
+
   form.addEventListener("submit", handleSubmit);
-  popupContainer.addEventListener("click", (e) => {
-    if (e.target.closest(".cancel")) removePopup();
-  });
+  popupContainer.addEventListener("click", handlePopupClose);
+  popupContainer.timeoutId = setTimeout(removePopup, 60000);
 };
 
 const handleAddEditTodo = (todo) => {
@@ -718,14 +651,13 @@ const handleAddEditTodo = (todo) => {
   const removePopup = () => {
     form.removeEventListener("submit", handleFormSubmit);
     popupContainer.removeEventListener("click", handlePopupClose);
+    clearTimeout(popupContainer.timeoutId);
     popupContainer.remove();
-    clearTimeout(timeout);
   };
 
   const handlePopupClose = (e) => {
-    if (e.target.closest(".cancel-btn") || !e.target.closest(".box")) {
+    if (e.target.closest(".cancel-btn") || !e.target.closest(".box"))
       removePopup();
-    }
   };
 
   const handleFormSubmit = async (e) => {
@@ -776,9 +708,19 @@ const handleAddEditTodo = (todo) => {
     }
   };
 
+  const existingPopup = document.querySelector(".popup-container");
+  if (existingPopup) {
+    existingPopup
+      .querySelector("form")
+      .removeEventListener("submit", handleFormSubmit);
+    existingPopup.removeEventListener("click", handlePopupClose);
+    clearTimeout(existingPopup.timeoutId);
+    existingPopup.remove();
+  }
+
   form.addEventListener("submit", handleFormSubmit);
   popupContainer.addEventListener("click", handlePopupClose);
-  const timeout = setTimeout(removePopup, 60000);
+  popupContainer.timeoutId = setTimeout(removePopup, 60000);
 };
 
 const handleToggleTodoStatus = async (todoId, status) => {
